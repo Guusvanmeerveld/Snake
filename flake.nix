@@ -30,7 +30,17 @@
           rustc = pkgs.rust-bin.stable.latest.default;
         };
 
-        app = rustPlatform.buildRustPackage rec {
+        libraries = with pkgs; [
+          libGL
+          libxkbcommon
+          wayland
+          xorg.libX11
+          xorg.libXcursor
+          xorg.libXi
+          xorg.libXrandr
+        ];
+
+        app = rustPlatform.buildRustPackage {
           pname = "snake";
           version = "0.0.1";
           src = ./.;
@@ -43,11 +53,9 @@
           nativeBuildInputs = with pkgs; [pkg-config cmake makeWrapper];
           buildInputs = with pkgs; [alsa-lib fontconfig libudev-zero];
 
-          LD_LIBRARY_PATH = lib.makeLibraryPath (with pkgs; [wayland wayland-protocols libxkbcommon]);
-
           postFixup = ''
             wrapProgram $out/bin/snake \
-              --set LD_LIBRARY_PATH ${LD_LIBRARY_PATH}
+              --set LD_LIBRARY_PATH ${lib.makeLibraryPath libraries}
           '';
         };
       in {
